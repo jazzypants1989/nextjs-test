@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect } from "react"
+import { useRef } from "react"
 import { signIn, useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 
@@ -11,75 +11,81 @@ type FormValues = {
   password: string
   confirmPassword: string
   newsletter: boolean
+  isEmployee: boolean
+  isAdmin: boolean
 }
 
 export default function LoginScreen() {
-  const { data: session, status } = useSession()
+  const { status } = useSession()
 
   const router = useRouter()
 
-  type FormFetch = {
-    name: string
-    email: string
-    password: string
-    newsletter: boolean
-  }
+  const nameRef = useRef<HTMLInputElement>(null)
+  const emailRef = useRef<HTMLInputElement>(null)
+  const passwordRef = useRef<HTMLInputElement>(null)
+  const confirmPasswordRef = useRef<HTMLInputElement>(null)
+  const newsletterRef = useRef<HTMLInputElement>(null)
+  const isEmployeeRef = useRef<HTMLInputElement>(null)
+  const isAdminRef = useRef<HTMLInputElement>(null)
 
-  const formFetch = async (data: FormFetch) => {
-    const res = await fetch("/api/auth/signup", {
+  const formRef = useRef<HTMLFormElement>(null)
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+
+    const name = nameRef.current?.value
+    const email = emailRef.current?.value
+    const password = passwordRef.current?.value
+    const confirmPassword = confirmPasswordRef.current?.value
+    const newsletter = newsletterRef.current?.checked
+    const isEmployee = isEmployeeRef.current?.checked
+    const isAdmin = isAdminRef.current?.checked
+
+    const formValues: FormValues = {
+      name: name || "",
+      email: email || "",
+      password: password || "",
+      confirmPassword: confirmPassword || "",
+      newsletter: newsletter || false,
+      isEmployee: isEmployee || false,
+      isAdmin: isAdmin || false,
+    }
+
+    console.log("formValues", formValues)
+
+    const response = await fetch("/api/auth/signup", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(formValues),
     })
 
-    const json = await res.json()
-
-    if (!res.ok) throw Error(json.message)
-
-    console.log(json)
+    if (response.ok) {
+      await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      })
+      router.push("/admin")
+    }
   }
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+  if (status === "loading") {
+    return <div>Loading...</div>
+  }
 
-    const form = e.currentTarget
-    const formData = new FormData(form)
-
-    const values: FormValues = {
-      name: formData.get("name") as string,
-      email: formData.get("email") as string,
-      password: formData.get("password") as string,
-      confirmPassword: formData.get("confirmPassword") as string,
-      // @ts-ignore
-      newsletter: formData.get("newsletter") as boolean,
-    }
-
-    if (values.password !== values.confirmPassword) {
-      alert("Passwords do not match")
-      return
-    }
-
-    if (values.newsletter === null || values.newsletter === undefined) {
-      values.newsletter = false
-    }
-
-    formFetch({
-      name: values.name,
-      email: values.email,
-      password: values.password,
-      newsletter: values.newsletter,
-    })
-
-    form.reset()
-
-    router.push("/login")
+  if (status === "authenticated") {
+    return <div>You are already signed in</div>
   }
 
   return (
     <div className="flex w-full flex-col items-center justify-center">
-      <form className="mx-auto max-w-screen-md" onSubmit={handleSubmit}>
+      <form
+        className="mx-auto max-w-screen-md"
+        onSubmit={handleSubmit}
+        ref={formRef}
+      >
         <h1 className="mb-4 text-xl">Create Account</h1>
         <div className="mb-4">
           <label htmlFor="name">Name</label>
@@ -88,6 +94,7 @@ export default function LoginScreen() {
             name="name"
             id="name"
             className="w-full p-2 border border-gray-300 rounded-md"
+            ref={nameRef}
           />
         </div>
         <div className="mb-4">
@@ -97,6 +104,7 @@ export default function LoginScreen() {
             name="email"
             id="email"
             className="w-full p-2 border border-gray-300 rounded-md"
+            ref={emailRef}
           />
         </div>
         <div className="mb-4">
@@ -106,6 +114,7 @@ export default function LoginScreen() {
             name="password"
             id="password"
             className="w-full p-2 border border-gray-300 rounded-md"
+            ref={passwordRef}
           />
         </div>
         <div className="mb-4">
@@ -115,6 +124,7 @@ export default function LoginScreen() {
             name="confirmPassword"
             id="confirmPassword"
             className="w-full p-2 border border-gray-300 rounded-md"
+            ref={confirmPasswordRef}
           />
         </div>
         <div className="mb-4">
@@ -124,6 +134,27 @@ export default function LoginScreen() {
             name="newsletter"
             id="newsletter"
             className="w-full p-2 border border-gray-300 rounded-md"
+            ref={newsletterRef}
+          />
+        </div>
+        <div className="mb-4">
+          <label htmlFor="isEmployee">Employee</label>
+          <input
+            type="checkbox"
+            name="isEmployee"
+            id="isEmployee"
+            className="w-full p-2 border border-gray-300 rounded-md"
+            ref={isEmployeeRef}
+          />
+        </div>
+        <div className="mb-4">
+          <label htmlFor="isAdmin">Admin</label>
+          <input
+            type="checkbox"
+            name="isAdmin"
+            id="isAdmin"
+            className="w-full p-2 border border-gray-300 rounded-md"
+            ref={isAdminRef}
           />
         </div>
         <div className="mb-4 ">

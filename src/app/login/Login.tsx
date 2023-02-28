@@ -3,7 +3,7 @@
 import AuthProvider from "../../Auth/AuthProvider"
 import Link from "next/link"
 import React, { useEffect } from "react"
-import { signIn } from "next-auth/react"
+import { signIn, useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 
 type FormValues = {
@@ -12,6 +12,8 @@ type FormValues = {
 }
 
 function LoginScreen() {
+  const { status } = useSession()
+
   const router = useRouter()
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -34,6 +36,14 @@ function LoginScreen() {
     form.reset()
 
     router.push("/")
+  }
+
+  if (status === "loading") {
+    return <div>Loading...</div>
+  }
+
+  if (status === "authenticated") {
+    return <div>Already logged in</div>
   }
 
   return (

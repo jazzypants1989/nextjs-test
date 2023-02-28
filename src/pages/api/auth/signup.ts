@@ -6,7 +6,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return
   }
-  const { name, email, password, newsletter } = req.body
+  const { name, email, password, newsletter, isAdmin, isEmployee } = req.body
   console.log(name, email, newsletter)
   if (
     !name ||
@@ -38,8 +38,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       email,
       password: bcryptjs.hashSync(password),
       newsletter,
-      isAdmin: false,
-      isEmployee: false,
+      isAdmin,
+      isEmployee,
     },
   })
 
