@@ -10,8 +10,11 @@ export default function EmployeeProvider({
 }) {
   const { data: session, status } = useSession()
 
+  if (status === "authenticated") {
+    console.log("user", session?.user)
+  }
+
   if (session?.user?.isEmployee && status === "authenticated") {
-    console.log("user", session.user)
     return <>{children}</>
   } else if (status === "loading") {
     return (

@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth/next"
 import { AuthOptions } from "../../src/pages/api/auth/[...nextauth]"
 
 export async function getSession() {
-  return await getServerSession(authOptions)
+  return await getServerSession(AuthOptions)
 }
 
 export async function getCurrentUser() {
